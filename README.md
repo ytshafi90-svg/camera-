@@ -1,1 +1,1954 @@
-# camera-
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#000000">
+<title>Shafi Pic Camera</title>
+
+<style>
+*{
+  box-sizing:border-box;
+  -webkit-tap-highlight-color:transparent;
+}
+
+html,body{
+  margin:0;
+  width:100%;
+  height:100%;
+  background:#000;
+  color:#fff;
+  font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif;
+  overflow:hidden;
+}
+
+button{
+  font:inherit;
+  color:inherit;
+}
+
+.app{
+  position:relative;
+  width:100%;
+  height:100%;
+  background:#000;
+  overflow:hidden;
+}
+
+#preview{
+  position:absolute;
+  inset:0;
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  background:#111;
+  transition:transform .18s ease,filter .15s ease;
+}
+
+.grid{
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+  opacity:.22;
+  background:
+  linear-gradient(90deg,transparent 32.9%,#fff 33%,transparent 33.1%,transparent 66.2%,#fff 66.3%,transparent 66.4%),
+  linear-gradient(0deg,transparent 32.9%,#fff 33%,transparent 33.1%,transparent 66.2%,#fff 66.3%,transparent 66.4%);
+}
+
+.topbar{
+  position:absolute;
+  top:0;
+  left:0;
+  right:0;
+  height:84px;
+  padding:14px 16px;
+  z-index:30;
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-start;
+  background:linear-gradient(#0009,transparent);
+}
+
+.top-left,.top-right{
+  display:flex;
+  gap:10px;
+  align-items:center;
+}
+
+.iconbtn,.formatbtn{
+  border:0;
+  background:rgba(25,25,25,.72);
+  backdrop-filter:blur(18px);
+  -webkit-backdrop-filter:blur(18px);
+  box-shadow:0 1px 5px #0005;
+}
+
+.iconbtn{
+  width:42px;
+  height:42px;
+  border-radius:50%;
+  font-size:19px;
+  display:grid;
+  place-items:center;
+}
+
+.formatbtn{
+  height:36px;
+  border-radius:19px;
+  padding:0 14px;
+  font-size:12px;
+}
+
+.focus{
+  position:absolute;
+  left:50%;
+  top:44%;
+  width:58px;
+  height:58px;
+  transform:translate(-50%,-50%);
+  border:1px solid #ffd800;
+  border-radius:2px;
+  display:none;
+  z-index:8;
+}
+
+.focus.show{
+  display:block;
+}
+
+.quick{
+  position:absolute;
+  left:50%;
+  bottom:205px;
+  transform:translateX(-50%);
+  z-index:25;
+  display:flex;
+  gap:5px;
+  align-items:center;
+}
+
+.zoom{
+  border:0;
+  background:transparent;
+  width:39px;
+  height:39px;
+  border-radius:50%;
+  font-size:12px;
+  color:#eee;
+}
+
+.zoom.active{
+  background:rgba(38,38,38,.88);
+  color:#ffd72b;
+  font-weight:700;
+}
+
+.lens-label{
+  position:absolute;
+  left:50%;
+  bottom:247px;
+  transform:translateX(-50%);
+  font-size:10px;
+  background:#111a;
+  padding:5px 10px;
+  border-radius:15px;
+  white-space:nowrap;
+  opacity:0;
+  transition:.2s;
+  z-index:26;
+}
+
+.lens-label.show{
+  opacity:1;
+}
+
+.bottom{
+  position:absolute;
+  left:0;
+  right:0;
+  bottom:0;
+  z-index:40;
+  padding:0 16px max(14px,env(safe-area-inset-bottom));
+  background:linear-gradient(transparent,#000 35%,#000 100%);
+}
+
+.modes{
+  display:flex;
+  justify-content:center;
+  gap:22px;
+  overflow-x:auto;
+  scrollbar-width:none;
+  padding:20px 4px 10px;
+}
+
+.modes::-webkit-scrollbar{
+  display:none;
+}
+
+.mode{
+  border:0;
+  background:transparent;
+  color:#ddd;
+  font-size:13px;
+  white-space:nowrap;
+  padding:5px 0;
+}
+
+.mode.active{
+  color:#ffd72b;
+  font-weight:700;
+}
+
+.capture-row{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:4px 30px 8px;
+}
+
+.sidebtn{
+  width:48px;
+  height:48px;
+  border:0;
+  border-radius:50%;
+  background:#1d1d1f;
+  color:#fff;
+  font-size:20px;
+  display:grid;
+  place-items:center;
+}
+
+.thumbnail{
+  overflow:hidden;
+}
+
+.thumbnail img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  display:none;
+}
+
+.shutter{
+  width:78px;
+  height:78px;
+  border-radius:50%;
+  background:#fff;
+  border:5px solid #d8d8d8;
+  box-shadow:0 0 0 3px #333;
+  transition:.15s;
+}
+
+.shutter.record{
+  background:#f23b3b;
+  border-radius:23px;
+}
+
+.watermark{
+  position:absolute;
+  bottom:115px;
+  left:50%;
+  transform:translateX(-50%);
+  z-index:12;
+  color:#fff9;
+  font-size:11px;
+  letter-spacing:1px;
+  text-shadow:0 1px 5px #000;
+  pointer-events:none;
+}
+
+.drawer,.panel{
+  position:absolute;
+  left:6%;
+  right:6%;
+  bottom:126px;
+  z-index:70;
+  background:rgba(35,35,35,.96);
+  backdrop-filter:blur(28px);
+  -webkit-backdrop-filter:blur(28px);
+  border-radius:30px;
+  padding:18px;
+  box-shadow:0 15px 50px #000b;
+  display:none;
+}
+
+.drawer.show,.panel.show{
+  display:block;
+}
+
+.drawer-grid{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:20px 8px;
+}
+
+.tool{
+  border:0;
+  background:none;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:7px;
+  font-size:11px;
+  color:#eee;
+}
+
+.tool i{
+  font-style:normal;
+  width:58px;
+  height:58px;
+  border-radius:50%;
+  background:#121212;
+  display:grid;
+  place-items:center;
+  font-size:25px;
+}
+
+.tool.active i{
+  color:#ffd72b;
+}
+
+.slider-row{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  padding:10px 0;
+  font-size:12px;
+  border-bottom:1px solid #fff1;
+}
+
+.slider-row:last-child{
+  border:0;
+}
+
+.slider-row input{
+  width:58%;
+  accent-color:#ffd72b;
+}
+
+.filter-grid,.ratio-grid{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:8px;
+}
+
+.filter,.ratio{
+  border:1px solid #444;
+  background:#151515;
+  border-radius:12px;
+  padding:10px 3px;
+  font-size:10px;
+}
+
+.filter.active,.ratio.active{
+  border-color:#ffd72b;
+  color:#ffd72b;
+}
+
+.panel-title{
+  text-align:center;
+  color:#aaa;
+  font-size:11px;
+  letter-spacing:1px;
+  margin-bottom:12px;
+}
+
+.ai-screen{
+  position:absolute;
+  inset:0;
+  background:#050505;
+  z-index:100;
+  display:none;
+  align-items:center;
+  justify-content:center;
+  flex-direction:column;
+}
+
+.ai-screen.show{
+  display:flex;
+}
+
+.ai-ring{
+  width:70px;
+  height:70px;
+  border:3px solid #333;
+  border-top-color:#ffd72b;
+  border-radius:50%;
+  animation:spin 1s linear infinite;
+  margin-bottom:18px;
+}
+
+@keyframes spin{
+  to{
+    transform:rotate(360deg);
+  }
+}
+
+.ai-title{
+  font-size:24px;
+  font-weight:700;
+}
+
+.ai-title b{
+  color:#ffd72b;
+}
+
+.ai-text{
+  font-size:11px;
+  color:#999;
+  margin-top:7px;
+}
+
+.bar{
+  width:70%;
+  height:4px;
+  background:#222;
+  margin-top:18px;
+  border-radius:5px;
+  overflow:hidden;
+}
+
+.bar i{
+  display:block;
+  width:0;
+  height:100%;
+  background:#ffd72b;
+  transition:.15s;
+}
+
+.result{
+  position:absolute;
+  inset:0;
+  background:#000;
+  z-index:110;
+  display:none;
+  overflow:auto;
+  padding:24px 14px 25px;
+}
+
+.result.show{
+  display:block;
+}
+
+.result img{
+  width:100%;
+  border-radius:18px;
+  display:block;
+}
+
+.result-head{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:12px;
+}
+
+.result-head button{
+  border:0;
+  background:#fff;
+  color:#000;
+  border-radius:13px;
+  padding:10px 14px;
+}
+
+.result-actions{
+  display:flex;
+  gap:8px;
+  margin-top:10px;
+}
+
+.result-actions button{
+  flex:1;
+  border:0;
+  border-radius:13px;
+  padding:12px;
+  background:#fff;
+  color:#000;
+}
+
+.toast{
+  position:absolute;
+  top:91px;
+  left:50%;
+  transform:translateX(-50%);
+  z-index:200;
+  background:#222d;
+  padding:9px 15px;
+  border-radius:18px;
+  font-size:11px;
+  display:none;
+  white-space:nowrap;
+}
+
+.toast.show{
+  display:block;
+}
+
+#file{
+  display:none;
+}
+</style>
+</head>
+
+<body>
+
+<div class="app">
+
+<video id="preview" autoplay playsinline muted></video>
+
+<div class="grid"></div>
+
+<div class="focus" id="focus"></div>
+
+<div class="topbar">
+
+<div class="top-left">
+<button class="iconbtn" id="flashTop">ϟ</button>
+<button class="iconbtn" id="liveTop">◎</button>
+</div>
+
+<div class="top-right">
+<button class="formatbtn" id="formatTop">JPEG <small>24</small></button>
+<button class="iconbtn" id="moreTop">•••</button>
+</div>
+
+</div>
+
+<div class="quick" id="zoomRow"></div>
+
+<div class="lens-label" id="lensLabel">
+1× • MAIN CAMERA
+</div>
+
+<div class="watermark">
+Shafi Pic
+</div>
+
+<div class="bottom">
+
+<div class="modes" id="modes">
+
+<button class="mode active" data-mode="Portrait">Portrait</button>
+
+<button class="mode" data-mode="Photo">Photo</button>
+
+<button class="mode" data-mode="Macro">Macro</button>
+
+<button class="mode" data-mode="Video">Video</button>
+
+<button class="mode" data-mode="Cinematic Video">Cinematic Video</button>
+
+<button class="mode" data-mode="Supermoon">Supermoon</button>
+
+</div>
+
+<div class="capture-row">
+
+<button class="sidebtn thumbnail" id="gallery">
+<img id="thumb">
+</button>
+
+<button class="shutter" id="shutter"></button>
+
+<button class="sidebtn" id="switch">↻</button>
+
+</div>
+
+</div>
+
+<div class="drawer" id="drawer">
+
+<div class="drawer-grid">
+
+<button class="tool" id="flashTool">
+<i>ϟ</i>FLASH
+</button>
+
+<button class="tool" id="liveTool">
+<i>◎</i>LIVE
+</button>
+
+<button class="tool" id="timerTool">
+<i>◷</i>TIMER
+</button>
+
+<button class="tool" id="exposureTool">
+<i>±</i>EXPOSURE
+</button>
+
+<button class="tool" id="filterTool">
+<i>✦</i>STYLES
+</button>
+
+<button class="tool" id="aspectTool">
+<i>4:3</i>ASPECT
+</button>
+
+<button class="tool" id="blurTool">
+<i>◌</i>PORTRAIT BLUR
+</button>
+
+<button class="tool" id="qualityTool">
+<i>4K</i>VIDEO QUALITY
+</button>
+
+<button class="tool" id="stabTool">
+<i>⌁</i>STABILIZATION
+</button>
+
+</div>
+
+</div>
+
+<div class="panel" id="controlPanel">
+
+<div class="panel-title" id="panelTitle">
+CONTROL
+</div>
+
+<div id="controlContent"></div>
+
+</div>
+
+<div class="ai-screen" id="aiScreen">
+
+<div class="ai-ring"></div>
+
+<div class="ai-title">
+CineCam <b>AI</b>
+</div>
+
+<div class="ai-text" id="aiText">
+Analyzing photo...
+</div>
+
+<div class="bar">
+<i id="aiBar"></i>
+</div>
+
+</div>
+
+<div class="result" id="result">
+
+<div class="result-head">
+
+<div>
+
+<b style="color:#ffd72b">
+✦ AI ENHANCED
+</b>
+
+<div style="font-size:11px;color:#999;margin-top:4px">
+Shafi Pic • Enhanced
+</div>
+
+</div>
+
+<button id="done">Done</button>
+
+</div>
+
+<img id="resultImg">
+
+<div class="result-actions">
+
+<button id="save">
+Save Photo
+</button>
+
+<button id="retake">
+Retake
+</button>
+
+</div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<input id="file" type="file" accept="image/*">
+
+</div>
+
+<script>
+
+const $=id=>document.getElementById(id);
+
+const video=$('preview');
+
+const canvas=document.createElement('canvas');
+
+let stream=null;
+
+let facing='environment';
+
+let mode='Portrait';
+
+let zoom=1;
+
+let recording=false;
+
+let recorder=null;
+
+let chunks=[];
+
+let blob=null;
+
+let filter='Original';
+
+let ratio='4:3';
+
+let exposure=0;
+
+let portraitBlur=45;
+
+let flash=false;
+
+let live=false;
+
+let stabilization=true;
+
+let timer=0;
+
+
+/* ZOOM */
+
+const zooms={
+
+Portrait:[1,2,3,4,5],
+
+Photo:[.5,1,2,3,5,10,20],
+
+Macro:[1,2,3,4,5,6,7,8,9,10],
+
+Video:[.5,1,2,3,5,10,20],
+
+'Cinematic Video':[1,2,3],
+
+Supermoon:[1,2,5,10,20]
+
+};
+
+
+/* FILTERS */
+
+const filters={
+
+Original:'none',
+
+Vivid:'saturate(1.3) contrast(1.08)',
+
+Warm:'sepia(.15) saturate(1.12)',
+
+Cool:'hue-rotate(12deg)',
+
+Dramatic:'contrast(1.25) saturate(1.12)',
+
+Natural:'saturate(1.06)',
+
+Mono:'grayscale(1)',
+
+Cinematic:'contrast(1.12) saturate(.94) sepia(.05)'
+
+};
+
+
+function toast(t){
+
+$('toast').textContent=t;
+
+$('toast').classList.add('show');
+
+setTimeout(()=>{
+
+$('toast').classList.remove('show');
+
+},1600);
+
+}
+
+
+/* ZOOM BUTTON */
+
+function renderZoom(){
+
+$('zoomRow').innerHTML='';
+
+zooms[mode].forEach(z=>{
+
+let b=document.createElement('button');
+
+b.className='zoom '+(z===zoom?'active':'');
+
+b.textContent=z+'×';
+
+b.onclick=()=>setZoom(z);
+
+$('zoomRow').appendChild(b);
+
+});
+
+}
+
+
+/* APPLY ZOOM */
+
+async function setZoom(z){
+
+zoom=z;
+
+if(!zooms[mode].includes(z)){
+
+zoom=1;
+
+}
+
+const track=stream?.getVideoTracks?.()[0];
+
+const cap=track?.getCapabilities?.();
+
+
+if(track && cap?.zoom){
+
+try{
+
+await track.applyConstraints({
+
+advanced:[{
+
+zoom:Math.min(
+
+Math.max(z,cap.zoom.min||1),
+
+cap.zoom.max||z
+
+)
+
+}]
+
+});
+
+}catch(e){}
+
+}
+
+
+video.style.transform=
+
+`scale(${Math.max(1,Math.min(z,20))})`;
+
+
+renderZoom();
+
+
+$('lensLabel').textContent=
+
+z>=5
+
+?
+
+z+'× • TELEPHOTO'
+
+:
+
+(mode==='Macro' && z>1
+
+?
+
+z+'× • MACRO'
+
+:
+
+z+'× • MAIN CAMERA');
+
+
+$('lensLabel').classList.add('show');
+
+
+clearTimeout(window.lt);
+
+
+window.lt=setTimeout(()=>{
+
+$('lensLabel').classList.remove('show');
+
+},1800);
+
+
+if(z>=5){
+
+toast('TELEPHOTO '+z+'×');
+
+}
+
+}
+
+
+/* FILTER APPLY */
+
+function applyPreview(){
+
+video.style.filter=
+
+`brightness(${1+exposure/100}) ${filters[filter]||'none'}`;
+
+}
+
+
+/* MODE */
+
+function setMode(m){
+
+mode=m;
+
+document.querySelectorAll('.mode').forEach(b=>{
+
+b.classList.toggle(
+
+'active',
+
+b.dataset.mode===m
+
+);
+
+});
+
+
+if(!zooms[m].includes(zoom)){
+
+zoom=1;
+
+}
+
+
+renderZoom();
+
+applyPreview();
+
+}
+
+
+document.querySelectorAll('.mode').forEach(b=>{
+
+b.onclick=()=>{
+
+setMode(b.dataset.mode);
+
+closePanels();
+
+};
+
+});
+
+
+function closePanels(){
+
+$('drawer').classList.remove('show');
+
+$('controlPanel').classList.remove('show');
+
+}
+
+
+/* MORE BUTTON */
+
+$('moreTop').onclick=()=>{
+
+$('drawer').classList.toggle('show');
+
+$('controlPanel').classList.remove('show');
+
+};
+
+
+/* FLASH */
+
+function toggleFlash(){
+
+flash=!flash;
+
+toast(
+
+flash
+
+?
+
+'Flash ON'
+
+:
+
+'Flash OFF'
+
+);
+
+}
+
+$('flashTop').onclick=toggleFlash;
+
+$('flashTool').onclick=toggleFlash;
+
+
+/* LIVE PHOTO */
+
+$('liveTop').onclick=()=>{
+
+live=!live;
+
+toast(
+
+live
+
+?
+
+'Live Photo ON'
+
+:
+
+'Live Photo OFF'
+
+);
+
+};
+
+
+$('liveTool').onclick=()=>{
+
+$('liveTop').click();
+
+};
+
+
+/* TIMER */
+
+$('timerTool').onclick=()=>{
+
+timer=
+
+timer===0
+
+?
+
+3
+
+:
+
+timer===3
+
+?
+
+10
+
+:
+
+0;
+
+
+toast(
+
+timer
+
+?
+
+`Timer ${timer}s`
+
+:
+
+'Timer OFF'
+
+);
+
+};
+
+
+/* CONTROL PANEL */
+
+function panel(title,html){
+
+$('panelTitle').textContent=title;
+
+$('controlContent').innerHTML=html;
+
+$('drawer').classList.remove('show');
+
+$('controlPanel').classList.add('show');
+
+}
+
+
+/* EXPOSURE */
+
+$('exposureTool').onclick=()=>{
+
+panel(
+
+'EXPOSURE',
+
+`<div class="slider-row">
+
+<span>EV ${exposure.toFixed(1)}</span>
+
+<input id="ev"
+
+type="range"
+
+min="-100"
+
+max="100"
+
+value="${exposure}">
+
+</div>`
+
+);
+
+};
+
+
+/* PORTRAIT BLUR */
+
+$('blurTool').onclick=()=>{
+
+if(mode!=='Portrait'){
+
+toast('Portrait Blur is only available in Portrait');
+
+return;
+
+}
+
+
+panel(
+
+'PORTRAIT BLUR',
+
+`<div class="slider-row">
+
+<span>Blur</span>
+
+<input id="blr"
+
+type="range"
+
+min="0"
+
+max="100"
+
+value="${portraitBlur}">
+
+</div>`
+
+);
+
+};
+
+
+/* FILTER */
+
+$('filterTool').onclick=()=>{
+
+panel(
+
+'FILTER',
+
+`<div class="filter-grid">
+
+${Object.keys(filters).map(x=>
+
+`<button
+
+class="filter ${x===filter?'active':''}"
+
+data-filter="${x}">
+
+${x}
+
+</button>`
+
+).join('')}
+
+</div>`
+
+);
+
+
+document.querySelectorAll('[data-filter]').forEach(b=>{
+
+b.onclick=()=>{
+
+filter=b.dataset.filter;
+
+applyPreview();
+
+document.querySelectorAll('.filter').forEach(x=>{
+
+x.classList.remove('active');
+
+});
+
+b.classList.add('active');
+
+};
+
+});
+
+};
+
+
+/* ASPECT RATIO */
+
+$('aspectTool').onclick=()=>{
+
+panel(
+
+'ASPECT RATIO',
+
+`<div class="ratio-grid">
+
+${['9:16','1:1','4:3','16:9'].map(x=>
+
+`<button
+
+class="ratio ${x===ratio?'active':''}"
+
+data-ratio="${x}">
+
+${x}
+
+</button>`
+
+).join('')}
+
+</div>`
+
+);
+
+
+document.querySelectorAll('[data-ratio]').forEach(b=>{
+
+b.onclick=()=>{
+
+ratio=b.dataset.ratio;
+
+document.querySelectorAll('.ratio').forEach(x=>{
+
+x.classList.remove('active');
+
+});
+
+b.classList.add('active');
+
+toast('Aspect '+ratio);
+
+};
+
+});
+
+};
+
+
+/* VIDEO QUALITY */
+
+$('qualityTool').onclick=()=>{
+
+if(!['Video','Cinematic Video'].includes(mode)){
+
+toast('Video quality is only available in Video');
+
+return;
+
+}
+
+
+panel(
+
+'VIDEO QUALITY',
+
+`<div class="slider-row">
+
+<span>Quality</span>
+
+<select id="quality"
+
+style="background:#111;color:#fff;border:0;padding:7px;border-radius:8px">
+
+<option>4K 60 FPS</option>
+
+<option>2K 60 FPS</option>
+
+<option>1080p 60 FPS</option>
+
+</select>
+
+</div>`
+
+);
+
+};
+
+
+/* STABILIZATION */
+
+$('stabTool').onclick=()=>{
+
+if(!['Video','Cinematic Video'].includes(mode)){
+
+toast('Stabilization is only available in Video');
+
+return;
+
+}
+
+
+stabilization=!stabilization;
+
+
+toast(
+
+stabilization
+
+?
+
+'Stabilization ON'
+
+:
+
+'Stabilization OFF'
+
+);
+
+};
+
+
+/* EXPOSURE & BLUR */
+
+document.addEventListener('input',e=>{
+
+if(e.target.id==='ev'){
+
+exposure=+e.target.value;
+
+applyPreview();
+
+e.target.parentElement.querySelector('span').textContent=
+
+'EV '+(exposure/10).toFixed(1);
+
+}
+
+
+if(e.target.id==='blr'){
+
+portraitBlur=+e.target.value;
+
+}
+
+});
+
+
+/* FOCUS */
+
+video.addEventListener('click',()=>{
+
+$('focus').classList.add('show');
+
+setTimeout(()=>{
+
+$('focus').classList.remove('show');
+
+},1000);
+
+});
+
+
+/* START CAMERA */
+
+async function startCamera(){
+
+try{
+
+if(stream){
+
+stream.getTracks().forEach(t=>t.stop());
+
+}
+
+
+stream=
+
+await navigator.mediaDevices.getUserMedia({
+
+video:{
+
+facingMode:{ideal:facing},
+
+width:{ideal:3840},
+
+height:{ideal:2160},
+
+frameRate:{ideal:60,max:60}
+
+},
+
+audio:true
+
+});
+
+
+video.srcObject=stream;
+
+setZoom(zoom);
+
+}
+
+catch(e){
+
+toast('Camera permission required');
+
+}
+
+}
+
+
+/* SWITCH CAMERA */
+
+$('switch').onclick=()=>{
+
+facing=
+
+facing==='environment'
+
+?
+
+'user'
+
+:
+
+'environment';
+
+
+startCamera();
+
+};
+
+
+/* ASPECT CROP */
+
+function aspectCrop(w,h){
+
+let r=
+
+ratio==='9:16'
+
+?
+
+9/16
+
+:
+
+ratio==='1:1'
+
+?
+
+1
+
+:
+
+ratio==='16:9'
+
+?
+
+16/9
+
+:
+
+4/3;
+
+
+let cw=w;
+
+let ch=h;
+
+
+if(w/h>r){
+
+cw=h*r;
+
+}
+
+else{
+
+ch=w/r;
+
+}
+
+
+return{
+
+sx:(w-cw)/2,
+
+sy:(h-ch)/2,
+
+cw,
+
+ch
+
+};
+
+}
+
+
+/* AI ENHANCEMENT */
+
+async function aiEnhance(){
+
+$('aiScreen').classList.add('show');
+
+
+const steps=[
+
+[15,'Analyzing image...'],
+
+[35,'Recovering details...'],
+
+[55,'Enhancing colors...'],
+
+[75,'Improving sharpness...'],
+
+[90,'Applying AI enhancement...'],
+
+[100,'Complete']
+
+];
+
+
+for(const [p,t] of steps){
+
+await new Promise(r=>setTimeout(r,220));
+
+$('aiBar').style.width=p+'%';
+
+$('aiText').textContent=t;
+
+}
+
+}
+
+
+/* TAKE PHOTO */
+
+async function takePhoto(){
+
+if(timer){
+
+toast('Timer '+timer+'s');
+
+await new Promise(r=>setTimeout(r,timer*1000));
+
+}
+
+
+const w=video.videoWidth||1920;
+
+const h=video.videoHeight||1080;
+
+const crop=aspectCrop(w,h);
+
+
+canvas.width=Math.round(crop.cw);
+
+canvas.height=Math.round(crop.ch);
+
+
+const ctx=canvas.getContext('2d');
+
+
+ctx.filter=
+
+`brightness(${1+exposure/100}) ${filters[filter]||'none'}`;
+
+
+ctx.drawImage(
+
+video,
+
+crop.sx,
+
+crop.sy,
+
+crop.cw,
+
+crop.ch,
+
+0,
+
+0,
+
+canvas.width,
+
+canvas.height
+
+);
+
+
+ctx.filter='none';
+
+
+const img=
+
+ctx.getImageData(
+
+0,
+
+0,
+
+canvas.width,
+
+canvas.height
+
+);
+
+
+const d=img.data;
+
+
+/* IMAGE ENHANCEMENT */
+
+for(let i=0;i<d.length;i+=4){
+
+d[i]=Math.min(
+
+255,
+
+(d[i]-128)*1.07+128
+
+);
+
+d[i+1]=Math.min(
+
+255,
+
+(d[i+1]-128)*1.07+128
+
+);
+
+d[i+2]=Math.min(
+
+255,
+
+(d[i+2]-128)*1.07+128
+
+);
+
+}
+
+
+ctx.putImageData(img,0,0);
+
+
+await aiEnhance();
+
+
+ctx.font=
+
+`${Math.max(18,canvas.width*.018)}px Arial`;
+
+ctx.fillStyle='rgba(255,255,255,.75)';
+
+ctx.textAlign='right';
+
+ctx.shadowColor='#000';
+
+ctx.shadowBlur=5;
+
+
+ctx.fillText(
+
+'Shafi Pic',
+
+canvas.width-22,
+
+canvas.height-22
+
+);
+
+
+canvas.toBlob(b=>{
+
+blob=b;
+
+$('resultImg').src=
+
+URL.createObjectURL(b);
+
+
+$('thumb').src=
+
+URL.createObjectURL(b);
+
+
+$('thumb').style.display='block';
+
+
+$('aiScreen').classList.remove('show');
+
+$('result').classList.add('show');
+
+},'image/jpeg',.96);
+
+}
+
+
+/* VIDEO RECORD */
+
+function toggleVideo(){
+
+if(!stream)return;
+
+
+if(!recording){
+
+chunks=[];
+
+
+let mime=
+
+MediaRecorder.isTypeSupported(
+
+'video/webm;codecs=vp9,opus'
+
+)
+
+?
+
+'video/webm;codecs=vp9,opus'
+
+:
+
+'video/webm';
+
+
+recorder=
+
+new MediaRecorder(
+
+stream,
+
+{mimeType:mime}
+
+);
+
+
+recorder.ondataavailable=e=>{
+
+if(e.data.size){
+
+chunks.push(e.data);
+
+}
+
+};
+
+
+recorder.onstop=()=>{
+
+let b=new Blob(
+
+chunks,
+
+{type:mime}
+
+);
+
+
+let a=document.createElement('a');
+
+a.href=URL.createObjectURL(b);
+
+
+a.download=
+
+mode==='Cinematic Video'
+
+?
+
+'ShafiPic_Cinematic_2K60.webm'
+
+:
+
+'ShafiPic_Video_4K60.webm';
+
+
+a.click();
+
+
+recording=false;
+
+$('shutter').classList.remove('record');
+
+toast('Video saved');
+
+};
+
+
+recorder.start();
+
+recording=true;
+
+$('shutter').classList.add('record');
+
+
+toast(
+
+mode==='Cinematic Video'
+
+?
+
+'Cinematic 2K 60 FPS'
+
+:
+
+'Video 4K 60 FPS'
+
+);
+
+}
+
+else{
+
+recorder.stop();
+
+}
+
+}
+
+
+/* SHUTTER */
+
+$('shutter').onclick=()=>{
+
+['Video','Cinematic Video'].includes(mode)
+
+?
+
+toggleVideo()
+
+:
+
+takePhoto();
+
+};
+
+
+/* GALLERY */
+
+$('gallery').onclick=()=>{
+
+$('file').click();
+
+};
+
+
+$('file').onchange=e=>{
+
+let f=e.target.files[0];
+
+if(!f)return;
+
+
+let im=new Image();
+
+
+im.onload=async()=>{
+
+canvas.width=im.naturalWidth;
+
+canvas.height=im.naturalHeight;
+
+
+canvas.getContext('2d').drawImage(
+
+im,
+
+0,
+
+0
+
+);
+
+
+await aiEnhance();
+
+
+canvas.toBlob(b=>{
+
+$('resultImg').src=
+
+URL.createObjectURL(b);
+
+
+$('result').classList.add('show');
+
+$('aiScreen').classList.remove('show');
+
+},'image/jpeg',.96);
+
+};
+
+
+im.src=
+
+URL.createObjectURL(f);
+
+};
+
+
+/* DONE */
+
+$('done').onclick=()=>{
+
+$('result').classList.remove('show');
+
+};
+
+
+/* RETAKE */
+
+$('retake').onclick=()=>{
+
+$('result').classList.remove('show');
+
+};
+
+
+/* SAVE */
+
+$('save').onclick=()=>{
+
+if(blob){
+
+let a=document.createElement('a');
+
+a.href=URL.createObjectURL(blob);
+
+a.download='Shafi_Pic_AI_Enhanced.jpg';
+
+a.click();
+
+}
+
+};
+
+
+/* START */
+
+renderZoom();
+
+applyPreview();
+
+startCamera();
+
+</script>
+
+</body>
+</html>
